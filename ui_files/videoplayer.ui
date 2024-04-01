@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>974</width>
+    <height>796</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>974</width>
+    <height>796</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>974</width>
+    <height>796</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(243, 243, 243);
+</string>
+  </property>
+  <widget class="QWidget" name="horizontalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>951</width>
+     <height>661</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QVideoWidget" name="video_widget" native="true">
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(79, 79, 79);</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="horizontalLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>670</y>
+     <width>951</width>
+     <height>71</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <item>
+     <widget class="QPushButton" name="openButton">
+      <property name="minimumSize">
+       <size>
+        <width>111</width>
+        <height>41</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 75 10pt &quot;Georgia&quot;;
+background-color: rgb(212, 212, 212);
+border-color: rgb(86, 86, 86);</string>
+      </property>
+      <property name="text">
+       <string>Открыть</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="rewindButton">
+      <property name="minimumSize">
+       <size>
+        <width>30</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>30</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border-image: url(:/Buttons/imgs/rewind_button.png);
+width: 30px;
+height: 30px;</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="playButton">
+      <property name="minimumSize">
+       <size>
+        <width>48</width>
+        <height>48</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>48</width>
+        <height>48</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton {
+border-image: url(:/Buttons/48-483851_play-button-png-icono-gmail-png-clipart.png);
+width: 40px;
+height: 40px;
+}
+
+</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="ffButton">
+      <property name="minimumSize">
+       <size>
+        <width>30</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>30</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton{ 
+border-image: url(:/Buttons/imgs/ff_button.png);
+width: 30px;
+height: 30px;
+}
+</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QSlider" name="timelineSlider">
+      <property name="styleSheet">
+       <string notr="true">selection-color: rgb(88, 88, 88);</string>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="timer">
+      <property name="styleSheet">
+       <string notr="true">font: 75 9pt &quot;Georgia&quot;;</string>
+      </property>
+      <property name="text">
+       <string>00:00</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_2">
+      <property name="maximumSize">
+       <size>
+        <width>16</width>
+        <height>21</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 75 9pt &quot;Georgia&quot;;</string>
+      </property>
+      <property name="text">
+       <string>/</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="duration">
+      <property name="styleSheet">
+       <string notr="true">font: 75 9pt &quot;Georgia&quot;;</string>
+      </property>
+      <property name="text">
+       <string>00:00</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label">
+      <property name="minimumSize">
+       <size>
+        <width>16</width>
+        <height>31</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16</width>
+        <height>31</height>
+       </size>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="soundButton">
+      <property name="minimumSize">
+       <size>
+        <width>31</width>
+        <height>31</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>31</width>
+        <height>31</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border-image: url(:/Buttons/imgs/sound_button.png);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QSlider" name="volumeSlider">
+      <property name="maximumSize">
+       <size>
+        <width>111</width>
+        <height>22</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color: rgb(176, 176, 176);
+alternate-background-color: rgb(198, 198, 198);
+selection-background-color: rgb(181, 181, 181);
+selection-color: rgb(211, 211, 211);
+gridline-color: rgb(193, 193, 193);</string>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QPushButton" name="goToRedactor">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>740</y>
+     <width>951</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>291</width>
+     <height>41</height>
+    </size>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">
+font: 75 10pt &quot;Georgia&quot;;
+background-color: rgb(212, 212, 212);</string>
+   </property>
+   <property name="text">
+    <string>Редактировать файл</string>
+   </property>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QVideoWidget</class>
+   <extends>QWidget</extends>
+   <header>PyQt5.QtMultimediaWidgets</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../imgs.qrc"/>
+ </resources>
+ <connections/>
+</ui>
