@@ -18,6 +18,8 @@ def delete_temp_files():
 
 
 if __name__ == '__main__':
+    if not os.path.exists('temp_files'):
+        os.makedirs('temp_files')
     app = QApplication(sys.argv)
     delete_temp_files()
     m = main_window.PlayerWindow()
