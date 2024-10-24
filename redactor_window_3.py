@@ -49,6 +49,8 @@ class RedactorWindow3(QWidget):
 
         self.withoutAudioButton.clicked.connect(self.without_audio)
         self.withoutAudioButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        self.exportAudioButton.clicked.connect(self.export_audio)
+        self.exportAudioButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         self.cancelButton.clicked.connect(self.cancel)
         self.cancelButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         self.cancelButton.setStyleSheet('border-image: url(imgs/cancel_button.png)')
@@ -98,6 +100,24 @@ class RedactorWindow3(QWidget):
                                     VALUES(?, ?);""", new_file_change)
         self.file_changes.commit()
         message.close()
+
+    def export_audio(self):
+        try:
+            file_name, _ = QFileDialog.getSaveFileName(self, 'Сохранить файл',
+                                                       '', '*.mp3')
+            if file_name != '':
+                message = QDialog()
+                message.resize(400, 20)
+                message.setWindowTitle('Файл сохраняется. Не закрывайте окно.')
+                message.show()
+                self.video_clip.audio.write_audiofile(file_name)
+                message.close()
+        except Exception:
+            error = QMessageBox()
+            error.setWindowTitle('Ошибка')
+            error.setText('')
+            error.setStandardButtons(QMessageBox.Ok)
+            error.exec()
 
     def cancel(self):
         if self.cur.execute("""SELECT COUNT(*) FROM last_changes""").fetchone()[0] > 1:
