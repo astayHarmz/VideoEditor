@@ -121,8 +121,7 @@ class RedactorWindow3(QWidget):
                                                                                              ffmpeg_params=[
                                                                                                  '-shortest'])
                 message.close()
-        except Exception as e:
-            print(e)
+        except Exception:
             error = QMessageBox()
             error.setWindowTitle('Ошибка')
             error.setText('')
