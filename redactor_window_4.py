@@ -11,17 +11,16 @@ import random
 import string
 import sqlite3
 
-import subprocess
-
 import main_window
 import redactor_window_2
 import redactor_window_1
-import redactor_window_4
+import redactor_window_3
 
 
-class RedactorWindow3(QWidget):
+class RedactorWindow4(QWidget):
     def __init__(self, previous_window):
         super().__init__()
+        self.audio_file = None
         self.redactor = None
         self.player = None
         self.file_change_number = previous_window.file_change_number
@@ -31,7 +30,7 @@ class RedactorWindow3(QWidget):
         self.file_changes = sqlite3.connect('file_changes.db')
         self.cur = self.file_changes.cursor()
         self.video_clip = mpy.VideoFileClip(self.current_file)
-        uic.loadUi('ui-files/videoredactor3.ui', self)
+        uic.loadUi('ui-files/videoredactor4.ui', self)
         self.setWindowTitle('Видеоредактор')
         self.setWindowIcon(QtGui.QIcon('icon.ico'))
 
@@ -42,18 +41,25 @@ class RedactorWindow3(QWidget):
         self.media_player.durationChanged.connect(self.change_duration)
         self.video_widget.show()
 
-        self.select_option.setCurrentText('Вырезать/извлечь аудиодорожку из файла')
-        self.select_option.currentTextChanged.connect(self.change_option)
+        self.audio_player = QMediaPlayer()
 
         self.playButton.clicked.connect(self.play)
         self.playButton.setStyleSheet('border-image: url(imgs/play_button.png)')
         self.playButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         self.media_player.pause()
 
-        self.withoutAudioButton.clicked.connect(self.without_audio)
-        self.withoutAudioButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
-        self.exportAudioButton.clicked.connect(self.export_audio)
-        self.exportAudioButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        self.audioPlayButton.clicked.connect(self.play)
+        self.audioPlayButton.setStyleSheet('border-image: url(imgs/play_button.png)')
+        self.audioPlayButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        self.audio_player.pause()
+
+        self.select_option.setCurrentText('Вставить аудиодорожку')
+        self.select_option.currentTextChanged.connect(self.change_option)
+
+        self.loadAudio.clicked.connect(self.load_audio)
+        self.loadAudio.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        self.insertAudio.clicked.connect(self.insert_audio)
+        self.insertAudio.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         self.cancelButton.clicked.connect(self.cancel)
         self.cancelButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         self.cancelButton.setStyleSheet('border-image: url(imgs/cancel_button.png)')
@@ -64,6 +70,8 @@ class RedactorWindow3(QWidget):
 
         self.timelineSlider.sliderMoved.connect(self.set_position)
         self.timelineSlider.setRange(0, 0)
+        self.audioTimelineSlider.sliderMoved.connect(self.audio_set_position)
+        self.audioTimelineSlider.setRange(0, 0)
 
     def play(self):
         if self.media_player.state() == self.media_player.PlayingState:
@@ -84,50 +92,41 @@ class RedactorWindow3(QWidget):
     def set_position(self, position):
         self.media_player.setPosition(position)
 
-    def without_audio(self):
-        message = QDialog()
-        message.resize(400, 20)
-        message.show()
-        message.setWindowTitle('Видео обрабатывается. Не закрывайте окно.')
-        self.file_change_number += 1
-        file_name = ''
-        for i in range(4):
-            file_name += random.choice(string.ascii_letters)
-        new_file = 'temp_files/' + file_name + '.mp4'
-        self.video_clip = self.video_clip.without_audio()
-        self.video_clip.write_videofile(new_file)
-        self.current_file = new_file
-        self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
-        new_file_change = (self.file_change_number, self.current_file)
-        self.cur.execute("""INSERT INTO last_changes(id, filepath)
-                                    VALUES(?, ?);""", new_file_change)
-        self.file_changes.commit()
-        message.close()
+    def load_audio(self):
+        self.audio_file = QFileDialog.getOpenFileName(self, 'Выбрать аудиофайл', '', 'Аудиофайл (*.mp3)')[0]
+        if self.audio_file != '':
+            if os.path.exists(self.audio_file):
+                self.audio_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.audio_file)))
+                self.audio_player.positionChanged.connect(self.audio_change_position)
+                self.audio_player.durationChanged.connect(self.audio_change_duration)
+            else:
+                error = QMessageBox()
+                error.setWindowTitle('Ошибка')
+                error.setText('Упс! Что-то пошло не так. Не удается загрузить файл.')
+                error.setStandardButtons(QMessageBox.Ok)
+                error.exec()
 
-    def export_audio(self):
-        try:
-            file_name, _ = QFileDialog.getSaveFileName(self, 'Сохранить файл',
-                                                       '', '*.mp3')
-            if file_name != '':
-                message = QDialog()
-                message.resize(400, 20)
-                message.setWindowTitle('Файл сохраняется. Не закрывайте окно.')
-                message.show()
+    def audio_play(self):
+        if self.audio_player.state() == self.audio_player.PlayingState:
+            self.audio_player.pause()
+            self.audioPlayButton.setStyleSheet('border-image: url(imgs/play_button.png)')
+        else:
+            self.audioPlayButton.setStyleSheet('border-image: url(imgs/play_button1.png)')
+            self.audio_player.play()
 
-                # command = f"ffmpeg -i {self.video_file} -b:a 320k {file_name} -shortest"
-                # subprocess.call(command)
+    def audio_change_position(self, position):
+        self.audioTimelineSlider.setValue(position)
+        self.audioTimer.setText(
+            f'{position // 600000}{position % 600000 // 60000}:{position % 60000 // 10000}{position % 10000 // 1000}')
 
-                self.video_clip.audio.set_duration(self.video_clip.duration).write_audiofile(file_name, bitrate='500k',
-                                                                                             ffmpeg_params=[
-                                                                                                 '-shortest'])
-                message.close()
-        except Exception as e:
-            print(e)
-            error = QMessageBox()
-            error.setWindowTitle('Ошибка')
-            error.setText('')
-            error.setStandardButtons(QMessageBox.Ok)
-            error.exec()
+    def audio_change_duration(self, duration):
+        self.audioTimelineSlider.setRange(0, duration)
+
+    def audio_set_position(self, position):
+        self.audio_player.setPosition(position)
+
+    def insert_audio(self):
+        pass
 
     def cancel(self):
         if self.cur.execute("""SELECT COUNT(*) FROM last_changes""").fetchone()[0] > 1:
@@ -171,10 +170,10 @@ class RedactorWindow3(QWidget):
             self.close()
             self.redactor = redactor_window_2.RedactorWindow2(self)
             self.redactor.show()
-        elif text == 'Вставить аудиодорожку':
+        elif text == 'Вырезать/извлечь аудиодорожку из файла':
             self.switch_to_another_window = True
             self.close()
-            self.redactor = redactor_window_4.RedactorWindow4(self)
+            self.redactor = redactor_window_3.RedactorWindow3(self)
             self.redactor.show()
 
     def go_to_player(self):
