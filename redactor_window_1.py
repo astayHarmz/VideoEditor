@@ -14,6 +14,7 @@ import sqlite3
 import main_window
 import redactor_window_2
 import redactor_window_3
+import redactor_window_4
 
 
 class RedactorWindow1(QWidget):
@@ -188,10 +189,15 @@ class RedactorWindow1(QWidget):
             self.close()
             self.redactor = redactor_window_2.RedactorWindow2(self)
             self.redactor.show()
-        elif text == 'Вырезать аудиодорожку из файла':
+        elif text == 'Вырезать/извлечь аудиодорожку из файла':
             self.switch_to_another_window = True
             self.close()
             self.redactor = redactor_window_3.RedactorWindow3(self)
+            self.redactor.show()
+        elif text == 'Вставить аудиодорожку':
+            self.switch_to_another_window = True
+            self.close()
+            self.redactor = redactor_window_4.RedactorWindow4(self)
             self.redactor.show()
 
     def go_to_player(self):

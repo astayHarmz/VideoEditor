@@ -547,7 +547,7 @@ background-color: rgb(221, 221, 221);</string>
     <string/>
    </property>
   </widget>
-  <widget class="QRadioButton" name="importAll">
+  <widget class="QRadioButton" name="insertAll">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -563,7 +563,7 @@ background-color: rgb(221, 221, 221);</string>
     <string>Вставить целиком в начало</string>
    </property>
   </widget>
-  <widget class="QRadioButton" name="importFragment">
+  <widget class="QRadioButton" name="insertFragment">
    <property name="geometry">
     <rect>
      <x>20</x>

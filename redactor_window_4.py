@@ -20,6 +20,7 @@ import redactor_window_3
 class RedactorWindow4(QWidget):
     def __init__(self, previous_window):
         super().__init__()
+        self.audio_clip = None
         self.audio_file = None
         self.redactor = None
         self.player = None
@@ -42,13 +43,14 @@ class RedactorWindow4(QWidget):
         self.video_widget.show()
 
         self.audio_player = QMediaPlayer()
+        self.audio_player.setMedia(QMediaContent())
 
         self.playButton.clicked.connect(self.play)
         self.playButton.setStyleSheet('border-image: url(imgs/play_button.png)')
         self.playButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         self.media_player.pause()
 
-        self.audioPlayButton.clicked.connect(self.play)
+        self.audioPlayButton.clicked.connect(self.audio_play)
         self.audioPlayButton.setStyleSheet('border-image: url(imgs/play_button.png)')
         self.audioPlayButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         self.audio_player.pause()
@@ -67,6 +69,8 @@ class RedactorWindow4(QWidget):
         self.saveButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         self.goToPlayer.clicked.connect(self.go_to_player)
         self.goToPlayer.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+
+        self.insertAudio.clicked.connect(self.insert_audio)
 
         self.timelineSlider.sliderMoved.connect(self.set_position)
         self.timelineSlider.setRange(0, 0)
@@ -97,6 +101,7 @@ class RedactorWindow4(QWidget):
         if self.audio_file != '':
             if os.path.exists(self.audio_file):
                 self.audio_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.audio_file)))
+                self.audio_clip = mpy.AudioFileClip(self.audio_file)
                 self.audio_player.positionChanged.connect(self.audio_change_position)
                 self.audio_player.durationChanged.connect(self.audio_change_duration)
             else:
@@ -126,7 +131,31 @@ class RedactorWindow4(QWidget):
         self.audio_player.setPosition(position)
 
     def insert_audio(self):
-        pass
+        message = QDialog()
+        message.resize(400, 20)
+        message.show()
+        message.setWindowTitle('Видео обрабатывается. Не закрывайте окно.')
+        self.file_change_number += 1
+        file_name = ''
+        for i in range(4):
+            file_name += random.choice(string.ascii_letters)
+        new_file = 'temp_files/' + file_name + '.mp4'
+        if self.insertAll.isChecked():
+            self.video_clip = self.video_clip.without_audio()
+            self.video_clip.audio = self.audio_clip
+            self.video_clip.write_videofile(new_file)
+            self.current_file = new_file
+            self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
+            new_file_change = (self.file_change_number, self.current_file)
+            self.cur.execute("""INSERT INTO last_changes(id, filepath)
+                                                VALUES(?, ?);""", new_file_change)
+            self.file_changes.commit()
+        elif self.insertFragment.isChecked():
+            pass
+        else:
+            pass
+        message.close()
+
 
     def cancel(self):
         if self.cur.execute("""SELECT COUNT(*) FROM last_changes""").fetchone()[0] > 1:
