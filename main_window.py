@@ -38,6 +38,7 @@ class PlayerWindow(QWidget):
         self.video_widget.show()
 
         self.openButton.clicked.connect(self.open)
+        self.openButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
 
         self.playButton.setEnabled(False)
         self.playButton.clicked.connect(self.play)
