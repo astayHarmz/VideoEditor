@@ -209,6 +209,11 @@ background-color: rgb(221, 221, 221);</string>
      <string>Вырезать/извлечь аудиодорожку из файла</string>
     </property>
    </item>
+   <item>
+    <property name="text">
+     <string>Вставить аудиодорожку</string>
+    </property>
+   </item>
   </widget>
   <widget class="QPushButton" name="withoutAudioButton">
    <property name="geometry">

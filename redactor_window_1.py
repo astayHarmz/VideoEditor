@@ -28,7 +28,7 @@ class RedactorWindow1(QWidget):
         self.video_file = previous_window.video_file
         self.current_file = previous_window.current_file
         self.switch_to_another_window = False
-        self.video_clip = mpy.VideoFileClip(self.current_file)
+        self.video_clip = mpy.VideoFileClip(self.current_file, fps_source="fps")
         uic.loadUi('ui-files/videoredactor.ui', self)
         self.setWindowTitle('Видеоредактор')
         self.setWindowIcon(QtGui.QIcon('icon.ico'))

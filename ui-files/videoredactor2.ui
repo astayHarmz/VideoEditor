@@ -223,7 +223,12 @@ background-color: rgb(221, 221, 221);</string>
    </item>
    <item>
     <property name="text">
-     <string>Вырезать аудиодорожку из файла</string>
+     <string>Вырезать/извлечь аудиодорожку из файла</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Вставить аудиодорожку</string>
     </property>
    </item>
   </widget>

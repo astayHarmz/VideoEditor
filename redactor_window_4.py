@@ -53,6 +53,7 @@ class RedactorWindow4(QWidget):
         self.audioPlayButton.clicked.connect(self.audio_play)
         self.audioPlayButton.setStyleSheet('border-image: url(imgs/play_button.png)')
         self.audioPlayButton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        self.audioPlayButton.setEnabled(False)
         self.audio_player.pause()
 
         self.select_option.setCurrentText('Вставить аудиодорожку')
@@ -70,12 +71,31 @@ class RedactorWindow4(QWidget):
         self.goToPlayer.clicked.connect(self.go_to_player)
         self.goToPlayer.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
 
-        self.insertAudio.clicked.connect(self.insert_audio)
-
         self.timelineSlider.sliderMoved.connect(self.set_position)
         self.timelineSlider.setRange(0, 0)
         self.audioTimelineSlider.sliderMoved.connect(self.audio_set_position)
         self.audioTimelineSlider.setRange(0, 0)
+
+        self.min_start.setEnabled(False)
+        self.min_end.setEnabled(False)
+        self.sec_start.setEnabled(False)
+        self.sec_end.setEnabled(False)
+
+        self.min_start_2.setEnabled(False)
+        self.min_end_2.setEnabled(False)
+        self.sec_start_2.setEnabled(False)
+        self.sec_end_2.setEnabled(False)
+
+        self.sec_start.setRange(0, 60)
+        self.sec_end.setRange(0, 60)
+        self.min_start.setRange(0, int(self.video_clip.duration // 60))
+        self.min_end.setRange(0, int(self.video_clip.duration % 60))
+
+        self.min_end.setValue(int(self.video_clip.duration // 60))
+        self.sec_end.setValue(int(self.video_clip.duration % 60))
+
+        self.insertAll.toggled.connect(self.enable_time_fields)
+        self.insertFragment.toggled.connect(self.enable_time_fields)
 
     def play(self):
         if self.media_player.state() == self.media_player.PlayingState:
@@ -96,6 +116,28 @@ class RedactorWindow4(QWidget):
     def set_position(self, position):
         self.media_player.setPosition(position)
 
+    def enable_time_fields(self):
+        if self.insertAll.isChecked():
+            self.min_start.setEnabled(False)
+            self.min_end.setEnabled(False)
+            self.sec_start.setEnabled(False)
+            self.sec_end.setEnabled(False)
+
+            self.min_start_2.setEnabled(False)
+            self.min_end_2.setEnabled(False)
+            self.sec_start_2.setEnabled(False)
+            self.sec_end_2.setEnabled(False)
+        elif self.audio_clip:
+            self.min_start.setEnabled(True)
+            self.min_end.setEnabled(True)
+            self.sec_start.setEnabled(True)
+            self.sec_end.setEnabled(True)
+
+            self.min_start_2.setEnabled(True)
+            self.min_end_2.setEnabled(True)
+            self.sec_start_2.setEnabled(True)
+            self.sec_end_2.setEnabled(True)
+
     def load_audio(self):
         self.audio_file = QFileDialog.getOpenFileName(self, 'Выбрать аудиофайл', '', 'Аудиофайл (*.mp3)')[0]
         if self.audio_file != '':
@@ -104,6 +146,15 @@ class RedactorWindow4(QWidget):
                 self.audio_clip = mpy.AudioFileClip(self.audio_file)
                 self.audio_player.positionChanged.connect(self.audio_change_position)
                 self.audio_player.durationChanged.connect(self.audio_change_duration)
+
+                self.min_start_2.setRange(0, int(self.audio_clip.duration // 60))
+                self.min_end_2.setRange(0, int(self.audio_clip.duration % 60))
+                self.sec_start_2.setRange(0, 60)
+                self.sec_end_2.setRange(0, 60)
+                self.min_end_2.setValue(int(self.audio_clip.duration // 60))
+                self.sec_end_2.setValue(int(self.audio_clip.duration % 60))
+
+                self.audioPlayButton.setEnabled(True)
             else:
                 error = QMessageBox()
                 error.setWindowTitle('Ошибка')
@@ -131,31 +182,66 @@ class RedactorWindow4(QWidget):
         self.audio_player.setPosition(position)
 
     def insert_audio(self):
-        message = QDialog()
-        message.resize(400, 20)
-        message.show()
-        message.setWindowTitle('Видео обрабатывается. Не закрывайте окно.')
-        self.file_change_number += 1
-        file_name = ''
-        for i in range(4):
-            file_name += random.choice(string.ascii_letters)
-        new_file = 'temp_files/' + file_name + '.mp4'
-        if self.insertAll.isChecked():
-            self.video_clip = self.video_clip.without_audio()
-            self.video_clip.audio = self.audio_clip
-            self.video_clip.write_videofile(new_file)
-            self.current_file = new_file
-            self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
-            new_file_change = (self.file_change_number, self.current_file)
-            self.cur.execute("""INSERT INTO last_changes(id, filepath)
-                                                VALUES(?, ?);""", new_file_change)
-            self.file_changes.commit()
-        elif self.insertFragment.isChecked():
-            pass
-        else:
-            pass
-        message.close()
+        if self.audio_clip:
+            message = QDialog()
+            message.resize(400, 20)
+            message.show()
+            message.setWindowTitle('Видео обрабатывается. Не закрывайте окно.')
+            self.file_change_number += 1
+            file_name = ''
+            for i in range(4):
+                file_name += random.choice(string.ascii_letters)
+            new_file = 'temp_files/' + file_name + '.mp4'
+            if self.insertAll.isChecked():
+                if self.audio_clip.duration > self.video_clip.duration:
+                    self.audio_clip = self.audio_clip.subclip(0, self.video_clip.duration)
+                self.video_clip = self.video_clip.without_audio()
+                self.video_clip.audio = self.audio_clip
+                self.video_clip.write_videofile(new_file)
+                self.current_file = new_file
+                self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
+                new_file_change = (self.file_change_number, self.current_file)
+                self.cur.execute("""INSERT INTO last_changes(id, filepath)
+                                                    VALUES(?, ?);""", new_file_change)
+                self.file_changes.commit()
+                message.close()
+            elif self.insertFragment.isChecked():
+                starting_point = self.min_start.value() * 60 + self.sec_start.value()
+                ending_point = self.min_end.value() * 60 + self.sec_end.value()
+                starting_point_audio = self.min_start_2.value() * 60 + self.sec_start_2.value()
+                ending_point_audio = self.min_end_2.value() * 60 + self.sec_end_2.value()
 
+                if self.audio_player.duration() // 1000 >= ending_point_audio > starting_point_audio >= 0 and not \
+                        (self.audio_player.duration() // 1000 == ending_point_audio and starting_point_audio == 0):
+                    self.audio_clip = self.audio_clip.subclip(starting_point_audio, ending_point_audio)
+                    self.video_clip = self.video_clip.without_audio()
+                    self.video_clip.audio = self.audio_clip
+                    self.video_clip.write_videofile(new_file)
+                    self.current_file = new_file
+                    self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
+                    new_file_change = (self.file_change_number, self.current_file)
+                    self.cur.execute("""INSERT INTO last_changes(id, filepath)
+                                                        VALUES(?, ?);""", new_file_change)
+                    self.file_changes.commit()
+                else:
+                    error = QMessageBox()
+                    error.setWindowTitle('Ошибка')
+                    error.setText('Некорректное значение')
+                    error.setStandardButtons(QMessageBox.Ok)
+                    error.exec()
+                message.close()
+            else:
+                error = QMessageBox()
+                error.setWindowTitle('Ошибка')
+                error.setText('Выберите опцию')
+                error.setStandardButtons(QMessageBox.Ok)
+                error.exec()
+        else:
+            error = QMessageBox()
+            error.setWindowTitle('Ошибка')
+            error.setText('Загрузите аудиофайл, который вы хотите вставить в видео')
+            error.setStandardButtons(QMessageBox.Ok)
+            error.exec()
 
     def cancel(self):
         if self.cur.execute("""SELECT COUNT(*) FROM last_changes""").fetchone()[0] > 1:
