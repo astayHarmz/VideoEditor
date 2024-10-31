@@ -20,6 +20,7 @@ import redactor_window_3
 class RedactorWindow4(QWidget):
     def __init__(self, previous_window):
         super().__init__()
+        self.go_back = None
         self.audio_clip = None
         self.audio_file = None
         self.redactor = None
@@ -77,9 +78,7 @@ class RedactorWindow4(QWidget):
         self.audioTimelineSlider.setRange(0, 0)
 
         self.min_start.setEnabled(False)
-        self.min_end.setEnabled(False)
         self.sec_start.setEnabled(False)
-        self.sec_end.setEnabled(False)
 
         self.min_start_2.setEnabled(False)
         self.min_end_2.setEnabled(False)
@@ -87,12 +86,7 @@ class RedactorWindow4(QWidget):
         self.sec_end_2.setEnabled(False)
 
         self.sec_start.setRange(0, 60)
-        self.sec_end.setRange(0, 60)
         self.min_start.setRange(0, int(self.video_clip.duration // 60))
-        self.min_end.setRange(0, int(self.video_clip.duration % 60))
-
-        self.min_end.setValue(int(self.video_clip.duration // 60))
-        self.sec_end.setValue(int(self.video_clip.duration % 60))
 
         self.insertAll.toggled.connect(self.enable_time_fields)
         self.insertFragment.toggled.connect(self.enable_time_fields)
@@ -119,9 +113,7 @@ class RedactorWindow4(QWidget):
     def enable_time_fields(self):
         if self.insertAll.isChecked():
             self.min_start.setEnabled(False)
-            self.min_end.setEnabled(False)
             self.sec_start.setEnabled(False)
-            self.sec_end.setEnabled(False)
 
             self.min_start_2.setEnabled(False)
             self.min_end_2.setEnabled(False)
@@ -129,9 +121,7 @@ class RedactorWindow4(QWidget):
             self.sec_end_2.setEnabled(False)
         elif self.audio_clip:
             self.min_start.setEnabled(True)
-            self.min_end.setEnabled(True)
             self.sec_start.setEnabled(True)
-            self.sec_end.setEnabled(True)
 
             self.min_start_2.setEnabled(True)
             self.min_end_2.setEnabled(True)
@@ -183,20 +173,21 @@ class RedactorWindow4(QWidget):
 
     def insert_audio(self):
         if self.audio_clip:
-            message = QDialog()
-            message.resize(400, 20)
-            message.show()
-            message.setWindowTitle('Видео обрабатывается. Не закрывайте окно.')
-            self.file_change_number += 1
-            file_name = ''
-            for i in range(4):
-                file_name += random.choice(string.ascii_letters)
-            new_file = 'temp_files/' + file_name + '.mp4'
             if self.insertAll.isChecked():
-                if self.audio_clip.duration > self.video_clip.duration:
-                    self.audio_clip = self.audio_clip.subclip(0, self.video_clip.duration)
+                temp_audio_clip = self.audio_clip
+                message = QDialog()
+                message.resize(400, 20)
+                message.show()
+                message.setWindowTitle('Видео обрабатывается. Не закрывайте окно.')
+                self.file_change_number += 1
+                file_name = ''
+                for i in range(4):
+                    file_name += random.choice(string.ascii_letters)
+                new_file = 'temp_files/' + file_name + '.mp4'
+                if temp_audio_clip.duration > self.video_clip.duration:
+                    temp_audio_clip = self.audio_clip.subclip(0, self.video_clip.duration)
                 self.video_clip = self.video_clip.without_audio()
-                self.video_clip.audio = self.audio_clip
+                self.video_clip.audio = temp_audio_clip
                 self.video_clip.write_videofile(new_file)
                 self.current_file = new_file
                 self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
@@ -207,15 +198,28 @@ class RedactorWindow4(QWidget):
                 message.close()
             elif self.insertFragment.isChecked():
                 starting_point = self.min_start.value() * 60 + self.sec_start.value()
-                ending_point = self.min_end.value() * 60 + self.sec_end.value()
                 starting_point_audio = self.min_start_2.value() * 60 + self.sec_start_2.value()
                 ending_point_audio = self.min_end_2.value() * 60 + self.sec_end_2.value()
 
-                if self.audio_player.duration() // 1000 >= ending_point_audio > starting_point_audio >= 0 and not \
-                        (self.audio_player.duration() // 1000 == ending_point_audio and starting_point_audio == 0):
-                    self.audio_clip = self.audio_clip.subclip(starting_point_audio, ending_point_audio)
+                if self.audio_player.duration() // 1000 >= ending_point_audio > starting_point_audio >= 0:
+                    temp_audio_clip = self.audio_clip
+                    message = QDialog()
+                    message.resize(400, 20)
+                    message.show()
+                    message.setWindowTitle('Видео обрабатывается. Не закрывайте окно.')
+                    self.file_change_number += 1
+                    file_name = ''
+                    for i in range(4):
+                        file_name += random.choice(string.ascii_letters)
+                    new_file = 'temp_files/' + file_name + '.mp4'
                     self.video_clip = self.video_clip.without_audio()
-                    self.video_clip.audio = self.audio_clip
+                    temp_clip = self.video_clip.subclip(0, starting_point)
+                    self.video_clip = self.video_clip.subclip(starting_point, self.video_clip.duration)
+                    temp_audio_clip = self.audio_clip.subclip(starting_point_audio, ending_point_audio)
+                    if temp_audio_clip.duration > self.video_clip.duration:
+                        temp_audio_clip = temp_audio_clip.subclip(0, self.video_clip.duration)
+                    self.video_clip.audio = temp_audio_clip
+                    self.video_clip = mpy.concatenate_videoclips([temp_clip, self.video_clip])
                     self.video_clip.write_videofile(new_file)
                     self.current_file = new_file
                     self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
@@ -223,13 +227,14 @@ class RedactorWindow4(QWidget):
                     self.cur.execute("""INSERT INTO last_changes(id, filepath)
                                                         VALUES(?, ?);""", new_file_change)
                     self.file_changes.commit()
+                    message.close()
                 else:
                     error = QMessageBox()
                     error.setWindowTitle('Ошибка')
                     error.setText('Некорректное значение')
                     error.setStandardButtons(QMessageBox.Ok)
                     error.exec()
-                message.close()
+
             else:
                 error = QMessageBox()
                 error.setWindowTitle('Ошибка')
@@ -249,9 +254,9 @@ class RedactorWindow4(QWidget):
                 ORDER BY id DESC LIMIT 2;""").fetchmany(2)
             self.current_file = prev_file[1][0]
             self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
-            os.remove(prev_file[0][0])
             self.file_change_number -= 1
             self.video_clip = mpy.VideoFileClip(self.current_file)
+            os.remove(prev_file[0][0])
             self.cur.execute("""DELETE from last_changes WHERE filepath = ?;""", prev_file[0])
             self.file_changes.commit()
 
@@ -293,8 +298,9 @@ class RedactorWindow4(QWidget):
 
     def go_to_player(self):
         self.close()
-        self.player = main_window.PlayerWindow()
-        self.player.show()
+        if self.go_back:
+            self.player = main_window.PlayerWindow()
+            self.player.show()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -308,15 +314,16 @@ class RedactorWindow4(QWidget):
                                                 'Вы уверены, что хотите выйти? Все несохраненные данные будут удалены.',
                                                 QMessageBox.Ok | QMessageBox.Save | QMessageBox.Cancel)
             if exit_warning == QMessageBox.Ok:
+                self.go_back = True
                 self.media_player.setMedia(QMediaContent())
-                self.cur.execute("""DROP table if exists last_changes""")
                 event.accept()
             elif exit_warning == QMessageBox.Cancel:
                 event.ignore()
+                self.go_back = False
             else:
+                self.go_back = True
                 self.save_file()
                 self.media_player.setMedia(QMediaContent())
-                self.cur.execute("""DROP table if exists last_changes""")
                 event.accept()
         else:
             self.media_player.setMedia(QMediaContent())

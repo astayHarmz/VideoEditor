@@ -15,11 +15,13 @@ import main_window
 import redactor_window_2
 import redactor_window_3
 import redactor_window_4
+from videoredactor import delete_temp_files
 
 
 class RedactorWindow1(QWidget):
     def __init__(self, previous_window):
         super().__init__()
+        self.go_back = None
         self.redactor = None
         self.player = None
         self.file_change_number = previous_window.file_change_number
@@ -158,9 +160,9 @@ class RedactorWindow1(QWidget):
                 ORDER BY id DESC LIMIT 2;""").fetchmany(2)
             self.current_file = prev_file[1][0]
             self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
-            os.remove(prev_file[0][0])
             self.file_change_number -= 1
             self.video_clip = mpy.VideoFileClip(self.current_file)
+            os.remove(prev_file[0][0])
             self.cur.execute("""DELETE from last_changes WHERE filepath = ?;""", prev_file[0])
             self.file_changes.commit()
 
@@ -202,8 +204,9 @@ class RedactorWindow1(QWidget):
 
     def go_to_player(self):
         self.close()
-        self.player = main_window.PlayerWindow()
-        self.player.show()
+        if self.go_back:
+            self.player = main_window.PlayerWindow()
+            self.player.show()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -217,15 +220,16 @@ class RedactorWindow1(QWidget):
                                                 'Вы уверены, что хотите выйти? Все несохраненные данные будут удалены.',
                                                 QMessageBox.Ok | QMessageBox.Save | QMessageBox.Cancel)
             if exit_warning == QMessageBox.Ok:
+                self.go_back = True
                 self.media_player.setMedia(QMediaContent())
-                self.cur.execute("""DROP table if exists last_changes""")
                 event.accept()
             elif exit_warning == QMessageBox.Cancel:
                 event.ignore()
+                self.go_back = False
             else:
+                self.go_back = True
                 self.save_file()
                 self.media_player.setMedia(QMediaContent())
-                self.cur.execute("""DROP table if exists last_changes""")
                 event.accept()
         else:
             self.media_player.setMedia(QMediaContent())
