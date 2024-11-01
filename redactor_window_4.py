@@ -201,7 +201,8 @@ class RedactorWindow4(QWidget):
                 starting_point_audio = self.min_start_2.value() * 60 + self.sec_start_2.value()
                 ending_point_audio = self.min_end_2.value() * 60 + self.sec_end_2.value()
 
-                if self.audio_player.duration() // 1000 >= ending_point_audio > starting_point_audio >= 0:
+                if self.audio_player.duration() // 1000 >= ending_point_audio > starting_point_audio >= 0 and \
+                        starting_point < self.media_player.duration() // 1000:
                     temp_audio_clip = self.audio_clip
                     message = QDialog()
                     message.resize(400, 20)
