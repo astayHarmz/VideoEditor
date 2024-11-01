@@ -161,8 +161,9 @@ class RedactorWindow1(QWidget):
             self.current_file = prev_file[1][0]
             self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
             self.file_change_number -= 1
+            self.video_clip.close()
             self.video_clip = mpy.VideoFileClip(self.current_file)
-            os.remove(prev_file[0][0])
+            # os.remove(prev_file[0][0])
             self.cur.execute("""DELETE from last_changes WHERE filepath = ?;""", prev_file[0])
             self.file_changes.commit()
 

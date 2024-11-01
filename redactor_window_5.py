@@ -1,3 +1,5 @@
+import gc
+
 from PyQt5 import uic, QtCore, QtGui
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QCursor
@@ -14,6 +16,7 @@ import string
 import sqlite3
 
 from typing_extensions import Optional, Sequence
+from inspect import currentframe, getframeinfo
 
 import main_window
 import redactor_window_2
@@ -89,17 +92,52 @@ class RedactorWindow5(QWidget):
 
     def generate(self):
         global leopard
+        message = QDialog()
         try:
-            self.video_clip.audio.write_audiofile("temp_files/temp.mp3")
-            transcript, words = leopard.process_file("temp_files/temp.mp3")
-            with open("temp_files/subtitles.srt", 'w') as f:
-                f.write(self.to_srt(words))
-            generator = lambda txt: mpy.TextClip(txt, font='Arial', fontsize=16, color='white', bg_color='black')
-            subtitles = SubtitlesClip("temp_files/subtitles.srt", generator)
-            self.video_clip = mpy.CompositeVideoClip([self.video_clip, subtitles.set_position(('center', 'bottom'))])
-            self.video_clip.write_videofile("temp_files/temp.mp4")
+            if self.video_clip.audio:
+                message.resize(400, 20)
+                message.show()
+                message.setWindowTitle('Видео обрабатывается. Не закрывайте окно.')
+                self.file_change_number += 1
+                file_name = ''
+                for i in range(4):
+                    file_name += random.choice(string.ascii_letters)
+                new_file = 'temp_files/' + file_name + '.mp4'
+                print("OK1")
+                self.video_clip.audio.set_duration(self.video_clip.duration).write_audiofile("temp_files/temp.mp3", bitrate='500k',
+                                                                                             ffmpeg_params=[
+                                                                                                 '-shortest'])
+                transcript, words = leopard.process_file("temp_files/temp.mp3")
+                with open("temp_files/subtitles.srt", 'w') as f:
+                    f.write(self.to_srt(words))
+                generator = lambda txt: mpy.TextClip(txt, font='Arial', fontsize=30, color='white', bg_color='black')
+                subtitles = SubtitlesClip("temp_files/subtitles.srt", generator)
+                self.video_clip = mpy.CompositeVideoClip([self.video_clip, subtitles.set_position(('center', 'bottom'))])
+                self.video_clip.write_videofile(new_file)
+                self.current_file = new_file
+                self.video_clip = mpy.VideoFileClip(self.current_file)
+                self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
+                new_file_change = (self.file_change_number, self.current_file)
+                self.cur.execute("""INSERT INTO last_changes(id, filepath)
+                                                                    VALUES(?, ?);""", new_file_change)
+                self.file_changes.commit()
+                os.remove("temp_files/subtitles.srt")
+                os.remove("temp_files/temp.mp3")
+                message.close()
+            else:
+                message.close()
+                error = QMessageBox()
+                error.setWindowTitle('Ошибка')
+                error.setText('Аудиодорожка отсутствует.')
+                error.setStandardButtons(QMessageBox.Ok)
+                error.exec()
         except Exception as e:
-            print(e)
+            message.close()
+            error = QMessageBox()
+            error.setWindowTitle('Ошибка')
+            error.setText('Упс! Ошибка. Что-то пошло не так, процесс прерван.')
+            error.setStandardButtons(QMessageBox.Ok)
+            error.exec()
 
     def second_to_timecode(self, x: float) -> str:
         hour, x = divmod(x, 3600)
@@ -146,8 +184,9 @@ class RedactorWindow5(QWidget):
             self.current_file = prev_file[1][0]
             self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
             self.file_change_number -= 1
+            self.video_clip.close()
             self.video_clip = mpy.VideoFileClip(self.current_file)
-            os.remove(prev_file[0][0])
+            #os.remove(prev_file[0][0])
             self.cur.execute("""DELETE from last_changes WHERE filepath = ?;""", prev_file[0])
             self.file_changes.commit()
 

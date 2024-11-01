@@ -15,6 +15,7 @@ import main_window
 import redactor_window_2
 import redactor_window_1
 import redactor_window_3
+import redactor_window_5
 
 
 class RedactorWindow4(QWidget):
@@ -256,8 +257,9 @@ class RedactorWindow4(QWidget):
             self.current_file = prev_file[1][0]
             self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
             self.file_change_number -= 1
+            self.video_clip.close()
             self.video_clip = mpy.VideoFileClip(self.current_file)
-            os.remove(prev_file[0][0])
+            # os.remove(prev_file[0][0])
             self.cur.execute("""DELETE from last_changes WHERE filepath = ?;""", prev_file[0])
             self.file_changes.commit()
 
@@ -295,6 +297,11 @@ class RedactorWindow4(QWidget):
             self.switch_to_another_window = True
             self.close()
             self.redactor = redactor_window_3.RedactorWindow3(self)
+            self.redactor.show()
+        elif text == 'Субтитры':
+            self.switch_to_another_window = True
+            self.close()
+            self.redactor = redactor_window_5.RedactorWindow5(self)
             self.redactor.show()
 
     def go_to_player(self):

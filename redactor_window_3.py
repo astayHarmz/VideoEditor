@@ -17,6 +17,7 @@ import main_window
 import redactor_window_2
 import redactor_window_1
 import redactor_window_4
+import redactor_window_5
 
 
 class RedactorWindow3(QWidget):
@@ -135,12 +136,10 @@ class RedactorWindow3(QWidget):
                 ORDER BY id DESC LIMIT 2;""").fetchmany(2)
             self.current_file = prev_file[1][0]
             self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.current_file)))
-            self.video_clip.close()
-            print("OK")
-            os.remove(prev_file[0][0])
-            print("OK")
             self.file_change_number -= 1
+            self.video_clip.close()
             self.video_clip = mpy.VideoFileClip(self.current_file)
+            # os.remove(prev_file[0][0])
             self.cur.execute("""DELETE from last_changes WHERE filepath = ?;""", prev_file[0])
             self.file_changes.commit()
 
@@ -178,6 +177,11 @@ class RedactorWindow3(QWidget):
             self.switch_to_another_window = True
             self.close()
             self.redactor = redactor_window_4.RedactorWindow4(self)
+            self.redactor.show()
+        elif text == 'Субтитры':
+            self.switch_to_another_window = True
+            self.close()
+            self.redactor = redactor_window_5.RedactorWindow5(self)
             self.redactor.show()
 
     def go_to_player(self):

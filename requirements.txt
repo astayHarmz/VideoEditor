@@ -1,2 +1,4 @@
 PyQt5==5.15.7
 moviepy==1.0.3
+pvleopard~=2.0.3
+typing_extensions~=4.12.2
