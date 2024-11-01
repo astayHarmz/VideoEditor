@@ -15,7 +15,7 @@ import main_window
 import redactor_window_2
 import redactor_window_3
 import redactor_window_4
-from videoredactor import delete_temp_files
+import redactor_window_5
 
 
 class RedactorWindow1(QWidget):
@@ -201,9 +201,16 @@ class RedactorWindow1(QWidget):
             self.close()
             self.redactor = redactor_window_4.RedactorWindow4(self)
             self.redactor.show()
+        elif text == 'Субтитры':
+            self.switch_to_another_window = True
+            self.close()
+            self.redactor = redactor_window_5.RedactorWindow5(self)
+            self.redactor.show()
 
     def go_to_player(self):
         self.close()
+        self.cur.execute("""DROP table if exists last_changes""")
+        self.file_changes.commit()
         if self.go_back:
             self.player = main_window.PlayerWindow()
             self.player.show()

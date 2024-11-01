@@ -231,6 +231,11 @@ background-color: rgb(221, 221, 221);</string>
      <string>Вставить аудиодорожку</string>
     </property>
    </item>
+   <item>
+    <property name="text">
+     <string>Субтитры</string>
+    </property>
+   </item>
   </widget>
   <widget class="QLabel" name="label_2">
    <property name="geometry">

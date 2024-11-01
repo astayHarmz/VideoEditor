@@ -190,6 +190,8 @@ class RedactorWindow2(QWidget):
 
     def go_to_player(self):
         self.close()
+        self.cur.execute("""DROP table if exists last_changes""")
+        self.file_changes.commit()
         if self.go_back:
             self.player = main_window.PlayerWindow()
             self.player.show()
