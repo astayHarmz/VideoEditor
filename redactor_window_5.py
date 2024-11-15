@@ -23,7 +23,7 @@ import redactor_window_2
 import redactor_window_1
 import redactor_window_3
 import redactor_window_4
-
+#и это потом тоже не забыть удалить
 leopard = pvleopard.create(access_key='cG9IZQDv4TBvRCk9ZhmkdEyfYM5Ot4yjpbxNeP9LxITGljSSayHcKg==')
 
 
@@ -90,6 +90,7 @@ class RedactorWindow5(QWidget):
     def set_position(self, position):
         self.media_player.setPosition(position)
 
+    #временный код, потом перепишу на другую библиотеку
     def generate(self):
         global leopard
         message = QDialog()
@@ -138,7 +139,7 @@ class RedactorWindow5(QWidget):
             error.setText('Упс! Ошибка. Что-то пошло не так, процесс прерван.')
             error.setStandardButtons(QMessageBox.Ok)
             error.exec()
-
+    #см.предыдущий комментарий
     def second_to_timecode(self, x: float) -> str:
         hour, x = divmod(x, 3600)
         minute, x = divmod(x, 60)
